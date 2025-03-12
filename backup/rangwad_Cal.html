@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RANGWAD Land Survey Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+        }
+        .logo {
+            width: 200px;
+        }
+        .btn {
+            background-color: #009966;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #007755;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #009966;
+            color: white;
+        }
+        input[type='number'] {
+            width: 60px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="img/logo.png" alt="RANGWAD Logo" class="logo">
+        <h2>Digital Land Surveyors Platform</h2>
+        <h3>ค่าใช้จ่ายงานรังวัด/แปลง</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>รายการ</th>
+                    <th>จำนวน</th>
+                    <th>หน่วยนับ</th>
+                    <th>ราคา/หน่วย</th>
+                    <th>รวม</th>
+                </tr>
+            </thead>
+            <tbody id="calculation-table"></tbody>
+            <tfoot>
+                <tr>
+                    <th colspan="4">รวมทั้งหมด</th>
+                    <th id="grandTotal">0</th>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    <script>
+        const items = [
+            { name: "ค่าอากรสแตมป์ติดใบมอบอำนาจที่ดิน", qty: 1, unit: 1, price: 30 },
+            { name: "ค่าอากรสแตมป์ติดใบสัญญาจ้าง", qty: 1, unit: 1, price: 30 },
+            { name: "ค่าอากรสแตมป์ติดใปมอบติดตามงานรังวัด", qty: 1, unit: 1, price: 10 },
+            { name: "ค่าอากรสแตมป์ติดใปมอบสำนักงานทำสัญญาแทน", qty: 1, unit: 1, price: 10 },
+            { name: "ค่าคำขอ", qty: 1, unit: 1, price: 5 },
+            { name: "ค่าคำพยาน", qty: 1, unit: 1, price: 20 },
+            { name: "ค่าหลักเขต/หลัก", qty: 10, unit: 1, price: 15 },
+            { name: "ค่าแบ่งแยก/แปลง", qty: 1, unit: 1, price: 40 },
+            { name: "ค่าแบ่งจำกัดเนื้อที่/แปลง", qty: 1, unit: 1, price: 30 },
+            { name: "ค่าส่งหมายข้างเคียง/คน", qty: 5, unit: 1, price: 15 },
+            { name: "ค่าน้ำมัน", qty: 2, unit: 100, price: 7 },
+            { name: "ค่าเสื่อมยานพาหนะ ต่อ กิโลเมตร", qty: 2, unit: 100, price: 1 },
+            { name: "ค่าคนงาน/คน/วัน", qty: 1, unit: 1, price: 500 },
+            { name: "ค่าเบี้ยเลี้ยงช่างรังวัด/วันรังวัดที่ดิน", qty: 2, unit: 1, price: 500 },
+            { name: "เงินเดือนช่างรังวัด", qty: 1, unit: 1, price: 1875 },
+            { name: "ค่าที่พัก 2 วันในการดำเนินการส่งเรื่อง", qty: 1, unit: 1, price: 500 },
+            { name: "ค่าอาหารและค่าใช้จ่ายอื่นๆ/วัน", qty: 1, unit: 1, price: 500 },
+            { name: "ค่าดำเนินส่วนสำนักงาน (เงินเดือน+ค่าเช่า+เครื่องมือ)", qty: 1, unit: 1, price: 750 },
+            { name: "ค่าลงระวางของสำนักงาน", qty: 1, unit: 1, price: 500 }
+        ];
+        
+        function populateTable() {
+            const tableBody = document.getElementById("calculation-table");
+            tableBody.innerHTML = "";
+            let grandTotal = 0;
+            
+            items.forEach((item, index) => {
+                let total = item.qty * item.unit * item.price;
+                grandTotal += total;
+                
+                let row = `<tr>
+                    <td>${item.name}</td>
+                    <td><input type="number" value="${item.qty}" min="1" id="qty${index}" oninput="calculate(${index})"></td>
+                    <td><input type="number" value="${item.unit}" min="1" id="unit${index}" oninput="calculate(${index})"></td>
+                    <td>${item.price}</td>
+                    <td id="total${index}">${total}</td>
+                </tr>`;
+                tableBody.innerHTML += row;
+            });
+            document.getElementById("grandTotal").textContent = grandTotal;
+        }
+        
+        function calculate(index) {
+            let qty = document.getElementById(`qty${index}`).value;
+            let unit = document.getElementById(`unit${index}`).value;
+            let total = qty * unit * items[index].price;
+            document.getElementById(`total${index}`).textContent = total;
+            
+            let grandTotal = 0;
+            items.forEach((item, i) => {
+                let newQty = document.getElementById(`qty${i}`).value;
+                let newUnit = document.getElementById(`unit${i}`).value;
+                grandTotal += newQty * newUnit * item.price;
+            });
+            document.getElementById("grandTotal").textContent = grandTotal;
+        }
+        
+        window.onload = populateTable;
+    </script>
+</body>
+</html>
