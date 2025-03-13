@@ -53,35 +53,165 @@
                             <label class="form-label">พื้นที่ดำเนินการ</label>
                             <input type="text" class="form-control" placeholder="ที่อยู่">
                         </div>
-                        <div class="col-md-5">
-                            <label class="form-label">วันที่ดำเนินงาน</label>
-                            <input type="date" class="form-control" placeholder="วันที่">
+                        <div class="col-md-6 d-flex">
+                            <div class="w-50">
+                                <label class="form-label">วันที่เริ่มต้น</label>
+                                <input type="date" class="form-control" id="startDate">
+                            </div>
+                            <div class="d-flex align-items-end mx-2">
+                                <span class="form-label">ถึง</span>
+                            </div>
+                            <div class="w-50">
+                                <label class="form-label">วันที่สิ้นสุด</label>
+                                <input type="date" class="form-control" id="endDate">
+                            </div>
                         </div>
                     </div>
 
                     <!-- แถวสุดท้ายที่ต้องการกรอบ -->
                     <div class="row mb-6 mt-2">
                         <div class="col-md-3">
+                            <label class="form-label">ระยะทางการเดินทาง</label>
+                            <input type="text" class="form-control" id="TotalDistanceInput" placeholder="กิโลเมตร">
+                        </div>
+                        <div class="col-md-2">
                             <label class="form-label">เนื้อที่โดยประมาณ</label>
-                            <input type="number" class="form-control" placeholder="ไร่">
+                            <input type="text" class="form-control" placeholder="ไร่">
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">ระยะเวลาในการรางวัด</label>
-                            <input type="number" class="form-control" placeholder="วัน">
+                        <div class="col-md-2">
+                            <label class="form-label">จำนวนวันทำงาน</label>
+                            <input type="text" class="form-control" id="TotalDateInput" placeholder="วัน" readonly>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label">จำนวนช่างรางวัด</label>
-                            <input type="number" class="form-control" placeholder="คน">
+                            <input type="number" class="form-control" id="staffHumanInput" placeholder="คน" value="1">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label ">จำนวนคนงาน</label>
-                            <!-- ช่อง "จำนวนคนงาน" ในข้อมูลผู้ขอรับบริการ -->
-                            <input type="number" class="form-control" id="workerHumanInput" placeholder="คน">
-
+                            <input type="number" class="form-control" id="workerHumanInput" placeholder="คน" value="1">
                         </div>
                     </div>
-                </div> <!-- ปิดกรอบ -->
 
+                    <!-- JavaScript คำนวณระยะเวลาอัตโนมัติ -->
+                    <script>
+                        // อัฟเดตจำนวนวันทำงาน
+                        document.addEventListener("DOMContentLoaded", function () {
+                            let dataInput_17 = document.getElementById("worker-date-17");
+                            let dataInput_18 = document.getElementById("worker-date-18");
+                            let dataInput_20 = document.getElementById("worker-date-20");
+                            let dataInput_21 = document.getElementById("worker-date-21");
+
+                            const startDateInput = document.getElementById("startDate");
+                            const endDateInput = document.getElementById("endDate");
+                            const totalDateInput = document.getElementById("TotalDateInput");
+
+                            function calculateDateDifference() {
+                                const startDate = new Date(startDateInput.value);
+                                const endDate = new Date(endDateInput.value);
+
+                                if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                                    let timeDiff = endDate - startDate;
+                                    let dayDiff = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+                                    totalDateInput.value = dayDiff > 0 ? dayDiff : 0;
+
+                                    dataInput_17.value = TotalDateInput.value;
+                                    dataInput_18.value = TotalDateInput.value;
+                                    dataInput_20.value = TotalDateInput.value;
+                                    dataInput_21.value = TotalDateInput.value;
+                                    calculateFoodOtherExpense();
+                                    calculateAccommodationCost();
+                                    calculateSurveyorAllowance();
+                                    calculateWorkerCost();
+
+                                } else {
+                                    totalDateInput.value = "";
+                                }
+                            }
+
+                            startDateInput.addEventListener("change", calculateDateDifference);
+                            endDateInput.addEventListener("change", calculateDateDifference);
+                        });
+
+                        // update จำนวนคนงาน
+                        document.addEventListener("DOMContentLoaded", function () {
+                            // ดึงช่อง input ทั้งสองช่องมาใช้งาน
+                            let staffHumanInput = document.getElementById("staffHumanInput");
+                            let staffCountInput_18 = document.getElementById("staffCountInput-18");
+                            let staffCountInput_19 = document.getElementById("staffCountInput-19");
+                            let staffCountInput_20 = document.getElementById("staffCountInput-20");
+                            let staffCountInput_21 = document.getElementById("staffCountInput-21");
+
+                            // เมื่อเปลี่ยนค่าจำนวนคนงาน ให้เปลี่ยนค่าหัวข้อ 17 อัตโนมัติ
+                            staffHumanInput.addEventListener("input", function () {
+                                staffCountInput_18.value = staffHumanInput.value;
+                                staffCountInput_19.value = staffHumanInput.value;
+                                staffCountInput_20.value = staffHumanInput.value;
+                                staffCountInput_21.value = staffHumanInput.value;
+                                calculateSurveyorAllowance();
+                                calculateSurveyorSalary();
+                                calculateAccommodationCost();
+                                calculateFoodOtherExpense();
+
+                            });
+
+                            staffHumanInput.addEventListener("change", function () {
+                                staffCountInput_18.value = staffHumanInput.value;
+                                staffCountInput_19.value = staffHumanInput.value;
+                                staffCountInput_20.value = staffHumanInput.value;
+                                staffCountInput_21.value = staffHumanInput.value;
+                                calculateSurveyorAllowance();
+                                calculateSurveyorSalary();
+                                calculateAccommodationCost();
+                                calculateFoodOtherExpense();
+                            });
+                        });
+
+                        // update จำนวนคนช่างรางวัด
+                        document.addEventListener("DOMContentLoaded", function () {
+                            // ดึงช่อง input ทั้งสองช่องมาใช้งาน
+                            let workerHumanInput = document.getElementById("workerHumanInput");
+                            let workerCountInput = document.getElementById("workerCountInput");
+
+                            // เมื่อเปลี่ยนค่าจำนวนคนงาน ให้เปลี่ยนค่าหัวข้อ 17 อัตโนมัติ
+                            workerHumanInput.addEventListener("input", function () {
+                                workerCountInput.value = workerHumanInput.value;
+                                calculateWorkerCost();
+                            });
+
+                            workerHumanInput.addEventListener("change", function () {
+                                workerCountInput.value = workerHumanInput.value;
+                                calculateWorkerCost();
+                            });
+                        });
+
+                        // update ระยะทาง
+                        document.addEventListener("DOMContentLoaded", function () {
+                            // ดึงช่อง input ทั้งสองช่องมาใช้งาน
+                            let TotalDistanceInput = document.getElementById("TotalDistanceInput");
+                            let distanceInput_18 = document.getElementById("distance-15");
+                            let distanceInput_19 = document.getElementById("distance-16");
+
+                            // เมื่อเปลี่ยนค่าจำนวนคนงาน ให้เปลี่ยนค่าหัวข้อ 17 อัตโนมัติ
+                            TotalDistanceInput.addEventListener("input", function () {
+                                distanceInput_18.value = TotalDistanceInput.value
+                                distanceInput_19.value = TotalDistanceInput.value
+                                calculateOilCost();
+                                calculateVehicleLossCost();
+
+                            });
+
+                            TotalDistanceInput.addEventListener("change", function () {
+                                distanceInput_18.value = TotalDistanceInput.value
+                                distanceInput_19.value = TotalDistanceInput.value
+                                calculateOilCost();
+                                calculateVehicleLossCost();
+
+                            });
+                        });
+                    </script>
+
+                </div> <!-- ปิดกรอบ -->
                 <div class="service-info-box">
                     <!-- หัวตาราง -->
                     <div class="row mb-6 text-center highlight"> <!-- เพิ่ม text-center -->
@@ -144,8 +274,7 @@
                                 <label class="form-label">2. ค่าอากรสแตมป์ติดใบสัญญาจ้าง (30 บาทต่อใบ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end stamp-contract-count" value="1"
-                                    min="0">
+                                <input type="number" class="form-control text-end stamp-contract-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">ใบ</label>
@@ -263,7 +392,7 @@
                                 <label class="form-label">5. ค่าคำขอ (5 บาทต่อคำขอ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end request-fee-count" value="1" min="0">
+                                <input type="text" class="form-control text-end request-fee-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">คำขอ</label>
@@ -302,7 +431,7 @@
                                 <label class="form-label">6. ค่าคำพยาน (20 บาทต่อคำพยาน)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end witness-fee-count" value="1" min="0">
+                                <input type="text" class="form-control text-end witness-fee-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">คำขอ</label>
@@ -389,8 +518,7 @@
                                 <label class="form-label">8. ค่าแบ่งแยก (40 บาทต่อแปลง)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end separation-fee-count" value="1"
-                                    min="0">
+                                <input type="text" class="form-control text-end separation-fee-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">แปลง</label>
@@ -426,11 +554,10 @@
                         <!-- 9. ค่าแบ่งจำกัดเนื้อที่/แปลง -->
                         <div class="row mb-3 area-limit-fee-row">
                             <div class="col-md-7">
-                                <label class="form-label">9. ค่าแบ่งจำกัดเนื้อที่/แปลง (30 บาทต่อแปลง)</label>
+                                <label class="form-label">9. ค่าแบ่งจำกัดเนื้อที่ (30 บาทต่อแปลง)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end area-limit-fee-count" value="1"
-                                    min="0">
+                                <input type="number" class="form-control text-end area-limit-fee-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">แปลง</label>
@@ -502,8 +629,6 @@
                                 calculateAdjacentNoticeFee();
                             });
                         </script>
-
-
                     </div>
 
                     <!-- งานจดทะเบียน -->
@@ -519,7 +644,7 @@
                                 <label class="form-label">11. ค่าคำของานจดทะเบียน (5 บาทต่อคำขอ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end registration-request-count" value="1"
+                                <input type="text" class="form-control text-end registration-request-count" value="1"
                                     min="0">
                             </div>
                             <div class="col-md-1">
@@ -559,7 +684,7 @@
                                 <label class="form-label">12. ค่าธรรมเนียม (50 บาทต่อรายการ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end fee-count" value="1" min="0">
+                                <input type="text" class="form-control text-end fee-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">รายการ</label>
@@ -637,7 +762,7 @@
                                 <label class="form-label">14. ค่าพยาน (20 บาทต่อคน)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end witness-count" value="1" min="0">
+                                <input type="text" class="form-control text-end witness-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">คน</label>
@@ -669,8 +794,6 @@
                                 calculateWitnessExpense();
                             });
                         </script>
-
-
                     </div>
 
                     <!-- งานช่างรางวัด -->
@@ -687,13 +810,14 @@
                                 <label class="form-label">15. ค่าน้ำมัน </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end distance" value="1" min="0">
+                                <input type="text" class="form-control text-end distance" value="1" min="0"
+                                    id="distance-15">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> กม. x </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end cost-per-distance" value="7" min="0">
+                                <input type="text" class="form-control text-end cost-per-distance" value="7" min="0">
 
                             </div>
                             <div class="col-md-1">
@@ -743,14 +867,14 @@
                                 <label class="form-label">16. ค่าเสื่อมยานพาหนะ </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end vehicle-loss-distance" value="1"
-                                    min="0">
+                                <input type="text" class="form-control text-end vehicle-loss-distance" value="1"
+                                    id="distance-16" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> กม. x </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end vehicle-loss-cost-per-distance"
+                                <input type="text" class="form-control text-end vehicle-loss-cost-per-distance"
                                     value="1" min="0">
                             </div>
                             <div class="col-md-1">
@@ -800,20 +924,21 @@
                                 <label class="form-label">17. ค่าคนงาน </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end worker-count" id="workerCountInput"
+                                <input type="text" class="form-control text-end worker-count" id="workerCountInput"
                                     value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> คน x </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end wage-per-day" value="500" min="0">
+                                <input type="text" class="form-control text-end wage-per-day" value="500" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> บาท x </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end work-days" value="1" min="0">
+                                <input type="text" class="form-control text-end work-days" value="1" min="0"
+                                    id="worker-date-17">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">วัน</label>
@@ -822,22 +947,6 @@
                                 <label class="form-label text-end fs-4 worker-cost">0.00</label>
                             </div>
                             <script>
-                                document.addEventListener("DOMContentLoaded", function () {
-                                    // ดึงช่อง input ทั้งสองช่องมาใช้งาน
-                                    let workerHumanInput = document.getElementById("workerHumanInput");
-                                    let workerCountInput = document.getElementById("workerCountInput");
-
-                                    // เมื่อเปลี่ยนค่าจำนวนคนงาน ให้เปลี่ยนค่าหัวข้อ 17 อัตโนมัติ
-                                    workerHumanInput.addEventListener("input", function () {
-                                        workerCountInput.value = workerHumanInput.value;
-                                    });
-
-                                    workerHumanInput.addEventListener("change", function () {
-                                        workerCountInput.value = workerHumanInput.value;
-                                    });
-                                });
-
-
                                 function calculateWorkerCost() {
                                     let row = document.querySelector(".worker-row");
                                     if (!row) return;
@@ -873,20 +982,21 @@
                                 <label class="form-label">18. ค่าเบี้ยเลี้ยงช่างรังวัด </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end surveyor-count" value="1" min="0">
+                                <input type="type" class="form-control text-end surveyor-count" value="1" min="0"
+                                    id="staffCountInput-18">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> คน x </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end allowance-per-day" value="500"
-                                    min="0">
+                                <input type="text" class="form-control text-end allowance-per-day" value="500" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> บาท x </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end work-days" value="1" min="0">
+                                <input type="text" class="form-control text-end work-days" value="1" min="0"
+                                    id="worker-date-18">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">วัน</label>
@@ -905,7 +1015,7 @@
 
                                     let totalCost = Math.max(0, surveyorCount * allowancePerDay * workDays); // ป้องกันค่าติดลบ
 
-                                    row.querySelector(".total-allowance").textContent = totalCost.toLocaleString('en-US');
+                                    row.querySelector(".total-allowance").textContent = totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 });
 
                                 }
 
@@ -931,7 +1041,8 @@
                                 <label class="form-label">19. เงินเดือนช่างรังวัด </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end surveyor-count" value="1" min="0">
+                                <input type="text" class="form-control text-end surveyor-count" value="1" min="0"
+                                    id="staffCountInput-19">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> คน x </label>
@@ -962,7 +1073,7 @@
 
                                     let totalCost = Math.max(0, surveyorCount * salaryPerPerson); // ป้องกันค่าติดลบ
 
-                                    row.querySelector(".total-salary").textContent = totalCost.toLocaleString('en-US'); // แสดงผลแบบมีเครื่องหมาย , คั่นหลัก
+                                    row.querySelector(".total-salary").textContent = totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 }); // แสดงผลแบบมีเครื่องหมาย , คั่นหลัก
                                 }
 
                                 document.addEventListener("DOMContentLoaded", function () {
@@ -990,19 +1101,21 @@
                                 <label class="form-label">20. ค่าที่พัก </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end person-count" value="1" min="0">
+                                <input type="text" class="form-control text-end person-count" value="1" min="0"
+                                    id="staffCountInput-20">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> คน x </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end cost-per-night" value="500" min="0">
+                                <input type="text" class="form-control text-end cost-per-night" value="500" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> บาท x </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end nights-count" value="1" min="0">
+                                <input type="text" class="form-control text-end nights-count" value="1" min="0"
+                                    id="worker-date-20">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">วัน</label>
@@ -1021,7 +1134,7 @@
 
                                     let totalCost = Math.max(0, personCount * costPerNight * nightsCount); // ป้องกันค่าติดลบ
 
-                                    row.querySelector(".total-accommodation").textContent = totalCost // แสดงผลเป็นทศนิยม 2 ตำแหน่ง
+                                    row.querySelector(".total-accommodation").textContent = totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 }); // แสดงผลเป็นทศนิยม 2 ตำแหน่ง
                                 }
 
                                 document.addEventListener("DOMContentLoaded", function () {
@@ -1046,20 +1159,21 @@
                                 <label class="form-label">21. ค่าอาหารและค่าใช้จ่ายอื่นๆ </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end food-person-count" value="1" min="0">
+                                <input type="text" class="form-control text-end food-person-count" value="1" min="0"
+                                    id="staffCountInput-21">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> คน x </label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end food-cost-per-day" value="500"
-                                    min="0">
+                                <input type="text" class="form-control text-end food-cost-per-day" value="500" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label"> บาท x </label>
                             </div>
                             <div class="col-md-1">
-                                <input type="number" class="form-control text-end food-days-count" value="1" min="0">
+                                <input type="text" class="form-control text-end food-days-count" value="1" min="0"
+                                    id="worker-date-21">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">วัน</label>
@@ -1078,7 +1192,7 @@
 
                                     let totalCost = Math.max(0, foodPersonCount * foodCostPerDay * foodDaysCount); // ป้องกันค่าติดลบ
 
-                                    row.querySelector(".total-food-other-expense").textContent = totalCost // แสดงผลเป็นทศนิยม 2 ตำแหน่ง
+                                    row.querySelector(".total-food-other-expense").textContent = totalCost.toLocaleString('en-US', { maximumFractionDigits: 0 }); // แสดงผลเป็นทศนิยม 2 ตำแหน่ง
                                 }
 
                                 document.addEventListener("DOMContentLoaded", function () {
@@ -1108,7 +1222,7 @@
                                 <label class="form-label">จำนวน</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end manage-count" value="750" min="0"
+                                <input type="text" class="form-control text-end manage-count" value="750" min="0"
                                     data-cost="1">
                             </div>
                             <div class="col-md-1">
@@ -1145,8 +1259,7 @@
                                 <label class="form-label">23. ค่าลงระวางของสำนักงาน (500 บาทต่อรายการ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end office-survey-count" value="1"
-                                    min="0">
+                                <input type="number" class="form-control text-end office-survey-count" value="1" min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">รายการ</label>
