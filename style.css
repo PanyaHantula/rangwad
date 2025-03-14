@@ -83,3 +83,20 @@ body {
     margin-left: 0.8rem; /* ห่างจากตัวเลขประมาณ 1 ตัวอักษร */
     text-align: right;
 }
+
+#map {
+    height: 300px;
+    width: 100%;
+}
+#output {
+    margin-top: 20px;
+    font-size: 18px;
+}
+.input-container {
+    margin: 5px;
+}
+.button-container button {
+    font-size: 14px;
+    padding: 5px 10px;
+    margin: 10px;
+}

@@ -3,14 +3,15 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Digital Land Surveyors Platform</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;700&family=Kanit:wght@400;700&family=Prompt:wght@400;700&display=swap"
         rel="stylesheet">
-
+    <script
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkEMUIP4XY0t24lWB-gXjXzkuB4LPe4t4&libraries=places"></script>
 </head>
 
 <body class="bg-light">
@@ -48,10 +49,137 @@
                     </div>
 
                     <!-- ข้อมูลพื้นที่ -->
-                    <div class="row mb-12">
-                        <div class="col-md-5">
+                    <div class="row mb-2">
+                        <div class="col-md-10">
                             <label class="form-label">พื้นที่ดำเนินการ</label>
                             <input type="text" class="form-control" placeholder="ที่อยู่">
+                        </div>
+                    </div>
+                    <div class="service-info-box">
+                        <div class="input-container">
+                            <label for="start">จุดเริ่มต้น:</label>
+                            <input id="start" type="text" placeholder="กรอกสถานที่เริ่มต้น"
+                                onclick="setLocation('start')">
+                        </div>
+                        <div class="input-container">
+                            <label for="end">จุดหมาย:</label>
+                            <input id="end" type="text" placeholder="กรอกสถานที่ปลายทาง" onclick="setLocation('end')">
+                        </div>
+                        <div class="button-container">
+                            <button onclick="calculateRoute()">คำนวณระยะทาง</button>
+                        </div>
+                        <div id="map"></div>
+                        <div id="output">
+                            <p><strong>ระยะทาง:</strong> <span id="distance"></span></p>
+                            <p><strong>เวลาเดินทาง:</strong> <span id="duration"></span></p>
+                        </div>
+                    </div>
+
+                    <script>
+                        let map;
+                        let selectedInput = null;
+                        let markers = {};
+
+                        function initMap() {
+                            map = new google.maps.Map(document.getElementById("map"), {
+                                center: { lat: 13.736717, lng: 100.523186 }, // กรุงเทพฯ
+                                zoom: 12,
+                            });
+
+                            new google.maps.places.Autocomplete(document.getElementById("start"));
+                            new google.maps.places.Autocomplete(document.getElementById("end"));
+
+                            map.addListener("click", (event) => {
+                                if (selectedInput) {
+                                    let latLng = event.latLng;
+                                    document.getElementById(selectedInput).value = `${latLng.lat()},${latLng.lng()}`;
+                                    placeMarker(latLng, selectedInput);
+                                    selectedInput = null;
+                                }
+                            });
+                        }
+
+                        function setLocation(inputId) {
+                            selectedInput = inputId;
+                            alert("คลิกบนแผนที่เพื่อเลือกตำแหน่ง");
+                        }
+
+                        function placeMarker(location, inputId) {
+                            if (markers[inputId]) {
+                                markers[inputId].setMap(null);
+                            }
+                            markers[inputId] = new google.maps.Marker({
+                                position: location,
+                                map: map,
+                            });
+                        }
+
+                        async function calculateRoute() {
+                            let start = document.getElementById("start").value;
+                            let end = document.getElementById("end").value;
+
+                            if (!start || !end) {
+                                alert("โปรดกรอกสถานที่เริ่มต้นและปลายทาง");
+                                return;
+                            }
+
+                            const apiKey = "AIzaSyAkEMUIP4XY0t24lWB-gXjXzkuB4LPe4t4";
+                            const routeApiUrl = `https://routes.googleapis.com/directions/v2:computeRoutes?key=${apiKey}`;
+
+                            const requestData = {
+                                origin: { location: { latLng: { latitude: parseFloat(start.split(',')[0]), longitude: parseFloat(start.split(',')[1]) } } },
+                                destination: { location: { latLng: { latitude: parseFloat(end.split(',')[0]), longitude: parseFloat(end.split(',')[1]) } } },
+                                travelMode: "DRIVE",
+                                computeAlternativeRoutes: false,
+                                routingPreference: "TRAFFIC_AWARE"
+                            };
+
+                            try {
+                                let response = await fetch(routeApiUrl, {
+                                    method: "POST",
+                                    headers: {
+                                        "Content-Type": "application/json",
+                                        "X-Goog-Api-Key": apiKey,
+                                        "X-Goog-FieldMask": "routes.distanceMeters,routes.duration"
+                                    },
+                                    body: JSON.stringify(requestData)
+                                });
+
+                                let data = await response.json();
+
+                                if (data.routes && data.routes.length > 0) {
+                                    let route = data.routes[0];
+                                    let distance = (route.distanceMeters / 1000).toFixed(2) + " km";
+                                    let duration = (route.duration.replace("s", "") / 60).toFixed(2) + " นาที";
+
+                                    document.getElementById("distance").innerText = distance;
+                                    document.getElementById("duration").innerText = duration;
+                                    document.getElementById("TotalDistanceInput").value = distance; // อัปเดตค่า input
+                                    document.getElementById("distance-15").value = distance; // อัปเดตค่า input
+                                    document.getElementById("distance-16").value = distance; // อัปเดตค่า input
+
+                                    calculateOilCost();
+                                    calculateVehicleLossCost();
+                                    calculateTotalExpense();
+
+                                } else {
+                                    alert("ไม่สามารถคำนวณเส้นทางได้");
+                                }
+                            } catch (error) {
+                                alert("เกิดข้อผิดพลาดในการดึงข้อมูล: " + error);
+                            }
+                        }
+
+                    </script>
+
+                    <script async defer
+                        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAkEMUIP4XY0t24lWB-gXjXzkuB4LPe4t4&libraries=places&callback=initMap"></script>
+
+                    <!-- ข้อมูลการทำงาน -->
+                    <div class="row mb-12">
+                        <div class="col-md-3">
+                            <label class="form-label">ระยะทางการเดินทาง</label>
+                            <input type="text" class="form-control" id="TotalDistanceInput" placeholder="กิโลเมตร">
                         </div>
                         <div class="col-md-6 d-flex">
                             <div class="w-50">
@@ -70,10 +198,6 @@
 
                     <!-- แถวสุดท้ายที่ต้องการกรอบ -->
                     <div class="row mb-6 mt-2">
-                        <div class="col-md-3">
-                            <label class="form-label">ระยะทางการเดินทาง</label>
-                            <input type="text" class="form-control" id="TotalDistanceInput" placeholder="กิโลเมตร">
-                        </div>
                         <div class="col-md-2">
                             <label class="form-label">เนื้อที่โดยประมาณ</label>
                             <input type="text" class="form-control" placeholder="ไร่">
@@ -123,6 +247,7 @@
                                     calculateAccommodationCost();
                                     calculateSurveyorAllowance();
                                     calculateWorkerCost();
+                                    calculateTotalExpense();
 
                                 } else {
                                     totalDateInput.value = "";
@@ -152,6 +277,7 @@
                                 calculateSurveyorSalary();
                                 calculateAccommodationCost();
                                 calculateFoodOtherExpense();
+                                calculateTotalExpense();
 
                             });
 
@@ -164,6 +290,7 @@
                                 calculateSurveyorSalary();
                                 calculateAccommodationCost();
                                 calculateFoodOtherExpense();
+                                calculateTotalExpense();
                             });
                         });
 
@@ -177,36 +304,13 @@
                             workerHumanInput.addEventListener("input", function () {
                                 workerCountInput.value = workerHumanInput.value;
                                 calculateWorkerCost();
+                                calculateTotalExpense();
                             });
 
                             workerHumanInput.addEventListener("change", function () {
                                 workerCountInput.value = workerHumanInput.value;
                                 calculateWorkerCost();
-                            });
-                        });
-
-                        // update ระยะทาง
-                        document.addEventListener("DOMContentLoaded", function () {
-                            // ดึงช่อง input ทั้งสองช่องมาใช้งาน
-                            let TotalDistanceInput = document.getElementById("TotalDistanceInput");
-                            let distanceInput_18 = document.getElementById("distance-15");
-                            let distanceInput_19 = document.getElementById("distance-16");
-
-                            // เมื่อเปลี่ยนค่าจำนวนคนงาน ให้เปลี่ยนค่าหัวข้อ 17 อัตโนมัติ
-                            TotalDistanceInput.addEventListener("input", function () {
-                                distanceInput_18.value = TotalDistanceInput.value
-                                distanceInput_19.value = TotalDistanceInput.value
-                                calculateOilCost();
-                                calculateVehicleLossCost();
-
-                            });
-
-                            TotalDistanceInput.addEventListener("change", function () {
-                                distanceInput_18.value = TotalDistanceInput.value
-                                distanceInput_19.value = TotalDistanceInput.value
-                                calculateOilCost();
-                                calculateVehicleLossCost();
-
+                                calculateTotalExpense();
                             });
                         });
                     </script>
@@ -274,7 +378,8 @@
                                 <label class="form-label">2. ค่าอากรสแตมป์ติดใบสัญญาจ้าง (30 บาทต่อใบ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end stamp-contract-count" value="1" min="0">
+                                <input type="number" class="form-control text-end stamp-contract-count" value="1"
+                                    min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">ใบ</label>
@@ -557,7 +662,8 @@
                                 <label class="form-label">9. ค่าแบ่งจำกัดเนื้อที่ (30 บาทต่อแปลง)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end area-limit-fee-count" value="1" min="0">
+                                <input type="number" class="form-control text-end area-limit-fee-count" value="1"
+                                    min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">แปลง</label>
@@ -1259,7 +1365,8 @@
                                 <label class="form-label">23. ค่าลงระวางของสำนักงาน (500 บาทต่อรายการ)</label>
                             </div>
                             <div class="col-md-2">
-                                <input type="number" class="form-control text-end office-survey-count" value="1" min="0">
+                                <input type="number" class="form-control text-end office-survey-count" value="1"
+                                    min="0">
                             </div>
                             <div class="col-md-1">
                                 <label class="form-label">รายการ</label>
